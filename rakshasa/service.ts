@@ -2,27 +2,36 @@ import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { checkUsernameAvailability, generateRandomWord } from './domain';
+import * as fs from 'fs/promises';
 
-export function goGet(): TE.TaskEither<Error, string> {
+export function checkUniqueUsername(): TE.TaskEither<Error, string> {
   return pipe(
     generateRandomWord(),
     TE.chain((randomWord: string) => {
       const randomNumber = Math.floor(Math.random() * 999999).toString().padStart(6, '0');
       const username = `${randomWord}${randomNumber}`;
-      return checkUsernameAvailability(username);
+      return TE.right(username);
     }),
-    TE.chain((result: boolean) => {
-      if (result) {
-        return TE.right("Username is available");
-      } else {
-        return TE.left(new Error("Username is not available"));
-      }
-    })
+    TE.chain((username: string) =>
+      pipe(
+        checkUsernameAvailability(username),
+        TE.chain((result: boolean) =>
+          result
+            ? TE.tryCatch(
+                async () => {
+                  await fs.appendFile('rakshasa/files/names.txt', `${username}\n`);
+                  return 'Username is available';
+                },
+                (error) => new Error(String(error))
+              )
+            : TE.left(new Error('Username is not available'))
+        )
+      )
+    )
   );
 }
 
-// Использование
-goGet()()
+checkUniqueUsername()()
   .then((result: E.Either<Error, string>) => {
     if (result._tag === "Right") {
       console.log(result.right); // Username is available
