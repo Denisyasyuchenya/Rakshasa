@@ -12,19 +12,19 @@ export function checkUniqueUsername(): TE.TaskEither<Error, string> {
       const username = `${randomWord}${randomNumber}`;
       return TE.right(username);
     }),
-    TE.chain((username: string) =>
+    TE.chain((username: string) => 
       pipe(
         checkUsernameAvailability(username),
-        TE.chain((result: boolean) =>
+        TE.chain((result: boolean) => 
           result
             ? TE.tryCatch(
                 async () => {
                   await fs.appendFile('rakshasa/files/names.txt', `${username}\n`);
-                  return 'Username is available';
+                  return `${username} is available`;
                 },
-                (error) => new Error(String(error))
+                (error: any) => new Error(String(error))
               )
-            : TE.left(new Error('Username is not available'))
+            : TE.left(new Error(`${username} is not available`))
         )
       )
     )
