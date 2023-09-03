@@ -1,7 +1,6 @@
 import axios from "axios";
 import * as TE from "fp-ts/TaskEither";
-import { TaskEither, tryCatch } from 'fp-ts/lib/TaskEither';
-import puppeteer, { Page } from 'puppeteer';
+import cheerio from 'cheerio';
 
 export function checkUsernameAvailability (username: string): TE.TaskEither<Error, boolean> {
     const API_MATRIX = `https://matrix.org/_matrix/client/r0/register/available?username=${username}`;
@@ -37,51 +36,40 @@ export function generateRandomWord(): TE.TaskEither<Error, string> {
     }
     return password;
   }
-
-  export function getTempEmail(): TaskEither<Error, string> {
-    return tryCatch(
-      async () => {
-        const browser = await puppeteer.launch({
-          headless: false,
-        });
   
-        const page: Page = await browser.newPage();
-  
-        await page.setUserAgent("Your User Agent String");
-        await page.setViewport({ width: 1280, height: 800 });
-  
-        await page.goto('https://temp-mail.org/', {
-          waitUntil: 'networkidle0',
-          timeout: 60000,
-        });
-  
-        await page.waitForSelector('.temp-emailbox h2');
-  
-        const email: string | null = await page.evaluate(() => {
-          const el = document.querySelector('.temp-emailbox h2 + .input-box-col input');
-          return el ? el.getAttribute('value') : null;
-        });
-  
-        await browser.close();
-  
-        if (email) {
-          return email;
-        } else {
-          throw new Error('Email not found');
-        }
-      },
-      (error: any) => new Error(String(error))
-    );
+  async function getGuerrillaMailEmail(): Promise<string | null> {
+    try {
+      const response = await axios.get('https://www.guerrillamail.com/');
+      const $ = cheerio.load(response.data);
+    
+      const emailElement = $('#email-widget');
+    
+      if (emailElement.length > 0) {
+        const email = emailElement.text();
+        return email.trim();
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('An error occurred:', error);
+      return null;
+    }
   }
   
-  // Usage
-  getTempEmail()()
-    .then(result => {
-      if (result._tag === 'Right') {
-        console.log(`Temporary email: ${result.right}`);
-      } else {
-        console.error(`An error occurred: ${result.left.message}`);
-      }
-    })
-    .catch(error => console.error(error));
+  // (async () => {
+  //   const email = await getGuerrillaMailEmail();
+  //   if (email) {
+  //     console.log('Guerrilla Mail Email:', email);
+  //   } else {
+  //     console.log('Failed to retrieve Guerrilla Mail email.');
+  //   }
+  // })();
   
+  // (async () => {
+  //   const email = await getGuerrillaMailEmail();
+  //   if (email) {
+  //     console.log('Second call - Guerrilla Mail Email:', email);
+  //   } else {
+  //     console.log('Second call - Failed to retrieve Guerrilla Mail email.');
+  //   }
+  // })();
