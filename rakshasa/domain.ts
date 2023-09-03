@@ -42,7 +42,7 @@ export function generateRandomWord(): TE.TaskEither<Error, string> {
       const response = await axios.get('https://www.guerrillamail.com/');
       const $ = cheerio.load(response.data);
     
-      const emailElement = $('#email-widget');
+      const emailElement = $('#email-widget'); // Используйте ID селектора
     
       if (emailElement.length > 0) {
         const email = emailElement.text();
@@ -56,20 +56,11 @@ export function generateRandomWord(): TE.TaskEither<Error, string> {
     }
   }
   
-  // (async () => {
-  //   const email = await getGuerrillaMailEmail();
-  //   if (email) {
-  //     console.log('Guerrilla Mail Email:', email);
-  //   } else {
-  //     console.log('Failed to retrieve Guerrilla Mail email.');
-  //   }
-  // })();
-  
-  // (async () => {
-  //   const email = await getGuerrillaMailEmail();
-  //   if (email) {
-  //     console.log('Second call - Guerrilla Mail Email:', email);
-  //   } else {
-  //     console.log('Second call - Failed to retrieve Guerrilla Mail email.');
-  //   }
-  // })();
+  (async () => {
+    const email = await getGuerrillaMailEmail();
+    if (email) {
+      console.log('Guerrilla Mail Email:', email);
+    } else {
+      console.log('Failed to retrieve Guerrilla Mail email.');
+    }
+  })();
