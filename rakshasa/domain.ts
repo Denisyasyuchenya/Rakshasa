@@ -42,7 +42,7 @@ export function generateRandomWord(): TE.TaskEither<Error, string> {
       const response = await axios.get('https://www.guerrillamail.com/');
       const $ = cheerio.load(response.data);
     
-      const emailElement = $('#email-widget'); // Используйте ID селектора
+      const emailElement = $('#email-widget');
     
       if (emailElement.length > 0) {
         const email = emailElement.text();
